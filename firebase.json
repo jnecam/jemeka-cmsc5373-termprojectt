@@ -1,17 +1,16 @@
 {
   "hosting": {
+    "site": "a3p1zxergsfrtosgfghjyfj",
     "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
+    "rewrites": [{
+      "source": "**",
+      "destination": "/index.html"
+    }]
   },
   "emulators": {
     "functions": {
