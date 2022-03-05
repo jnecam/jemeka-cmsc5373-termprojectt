@@ -2,8 +2,9 @@ import { MENU, root } from "./elements.js";
 import { ROUTE_PATHNAMES } from "../controller/route.js";
 import { currentUser } from "../controller/firebase_auth.js";
 import { ShoppingCart } from "../model/shopping_cart.js";
-import { currency, disableButton, enableButton } from "./util.js";
+import { currency, disableButton, enableButton, info } from "./util.js";
 import { home_page } from "./home_page.js";
+import { DEV } from "../model/constants.js";
 
 
 
@@ -82,6 +83,27 @@ export async function cart_page() {
     await home_page();
 
     enableButton(continueButton, label);
+  });
+
+  const checkoutButton = document.getElementById('button-checkout');
+  checkoutButton.addEventListener('click', async() => {
+    const label = disableButton(checkoutButton);
+
+    try {
+      //Charging is done! ==> for students in term project
+      //Save to Firebase (await)
+
+      info('Success!', 'Checkout Complete!');
+      cart.clear();
+      MENU.CartItemCount.innerHTML = 0;
+      history.pushState(null, null, ROUTE_PATHNAMES.HOME);
+      await home_page();
+    } catch (e) {
+      if (DEV) console.log(e);
+      info('Checkout failed', JSON.stringify(e));
+    }
+    enableButton(checkoutButton, label);
+
   });
 
 }
