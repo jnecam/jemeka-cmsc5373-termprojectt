@@ -11,6 +11,9 @@ import { DEV } from "../model/constants.js";
 
 import * as Util from '../viewpage/util.js'
 
+import { routing, ROUTE_PATHNAMES } from "./route.js";
+import { initShoppingCart } from "../viewpage/cart_page.js";
+
 const auth = getAuth();
 export let currentUser = null;
 
@@ -57,7 +60,13 @@ async function authStateChanged(user) {
     for (let i = 0; i < menus.length; i++) {
       menus[i].style.display = 'block'
     }
-    console.log('=== signed in')
+
+
+    initShoppingCart();
+
+
+    routing(window.location.pathname, window.location.hash);
+
   } else {
     let menus = document.getElementsByClassName('modal-preauth');
     for (let i = 0; i < menus.length; i++) {
@@ -67,7 +76,10 @@ async function authStateChanged(user) {
     for (let i = 0; i < menus.length; i++) {
       menus[i].style.display = 'none'
     }
-    console.log('=== signed out')
+
+    history.pushState(null, null, ROUTE_PATHNAMES.HOME);
+    routing(window.location.pathname, window.location.hash);
+
   }
 
 

@@ -1,5 +1,9 @@
 import { modalInfobox } from "./elements.js";
 
+export function currency(value) {
+  return Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+}
+
 
 export function info(title, body, closeModal) {
   if (closeModal) closeModal.hide();
