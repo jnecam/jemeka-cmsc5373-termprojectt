@@ -9,6 +9,7 @@ import {
   addDoc,
   where,
   doc,
+  updateDoc,
 } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore.js"
 import { AccountInfo } from "../model/account_info.js";
 import { COLLECTION_NAMES } from "../model/constants.js";
@@ -60,4 +61,11 @@ export async function getAccountInfo(uid) {
     await setDoc(accountDocRef, defaultInfo.serialize());
     return defaultInfo;
   }
+}
+
+export async function updateAccountInfo(uid, updateinfo) {
+  // updateInfo = {key: value}
+  const docRef = doc(db, COLLECTION_NAMES.ACCOUNT_INFO, uid);
+  await updateDoc(docRef, updateInfo);
+
 }

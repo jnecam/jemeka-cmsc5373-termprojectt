@@ -1,8 +1,8 @@
 import { MENU, root } from "./elements.js";
 import { ROUTE_PATHNAMES } from "../controller/route.js";
-import { getAccountInfo } from "../controller/firestore_controller.js";
+import { getAccountInfo, updateAccountInfo } from "../controller/firestore_controller.js";
 import { currentUser } from "../controller/firebase_auth.js";
-import { info } from "./util.js";
+import { info, disableButton, enableButton } from "./util.js";
 import { DEV } from "../model/constants.js";
 
 export let accountInfo = null;
@@ -78,10 +78,76 @@ export async function profile_page() {
      </tr>
     </tbody>
   </table>
+  <div>
+    <button type="submit" class="btn btn-outline-primary" onclick="this.form.submitter='EDIT'">Edit</button>
+    <button type="submit" class="btn btn-outline-danger" style="display: none;" onclick="this.form.submitter='UPDATE'">Update</button>
+    <button type="submit" class="btn btn-outline-secondary" style="display: none;" onclick="this.form.submitter='CANCEL'">Cancel</button>
+
+  </div>
 </form> 
   `;
 
+  html += `
+      <hr class="mt-5">
+      Profile Picture:
+      <container>
+        <div>
+          <img src="${accountInfo.photoURL}" class="rounded-circle" height="250px">
+        </div>
+      </container>
+  `;
+
   root.innerHTML = html;
+
+  document.getElementById('form-update-profile').addEventListener('submit', async e => {
+    e.preventDefault();
+    const buttons = e.target.getElementsByTagName('button');
+    const inputs = e.target.getElementsByTagName('input');
+    const submitter = e.target.submitter;
+    if (submitter == 'EDIT') {
+      buttons[0].style.display = 'none';
+      buttons[1].style.display = 'inline-block';
+      buttons[2].style.display = 'inline-block';
+      for (let i = 0; i < inputs.length; i++) inputs[i].disabled = false;
+
+    } else if (submitter == 'UPDATE') {
+      const updateInfo = {};
+      if (e.target.name.value.trim() != accountInfo.name) updateInfo.name = e.target.name.value.trim();
+      if (e.target.address.value.trim() != accountInfo.value) updateInfo.name = e.target.address.value.trim();
+      if (e.target.city.value.trim() != accountInfo.city) updateInfo.name = e.target.city.value.trim();
+      if (e.target.state.value.trim() != accountInfo.state) updateInfo.name = e.target.state.value.trim();
+      if (e.target.zip.value.trim() != accountInfo.zip) updateInfo.name = e.target.zip.value.trim();
+      if (e.target.creditNo.value.trim() != accountInfo.creditNo) updateInfo.creditNo = e.target.creditNo.value.trim();
+
+      if (Object.keys(updateinfo).length > 0) {
+        const label = disableButton(buttons[1]);
+        try {
+          await updateAccountInfo(currentUser.uid, updateInfo);
+          Object.keys(updateInfo).forEach(key => accountInfo[key] = updateInfo[key]);
+        } catch (e) {
+          if (DEV) console.log(e);
+          info('Update Account Error', JSON.strigify(e));
+        }
+      }
+
+      buttons[0].style.display = 'block';
+      buttons[1].style.display = 'none';
+      buttons[2].style.display = 'none';
+      for (let i = 0; i < inputs.length; i++) inputs[i].disabled = true;
+
+    } else if (submitter == 'CANCEL') {
+
+      buttons[0].style.display = 'block';
+      buttons[1].style.display = 'none';
+      buttons[2].style.display = 'none';
+      for (let i = 0; i < inputs.length; i++) inputs[i].disabled = true;
+    } else {
+      if (DEV) console.log(e);
+      return;
+
+    }
+
+  });
 
 
 }
