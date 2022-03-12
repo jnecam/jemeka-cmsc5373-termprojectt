@@ -6,3 +6,7 @@ export const COLLECTION_NAMES = {
   ACCOUNT_INFO: 'account_info',
 
 }
+
+export const STORAGE_FOLDER_NAMES = {
+  PROFILE_PHOTOS: 'profile_photos/',
+}

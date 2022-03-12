@@ -63,7 +63,7 @@ export async function getAccountInfo(uid) {
   }
 }
 
-export async function updateAccountInfo(uid, updateinfo) {
+export async function updateAccountInfo(uid, updateInfo) {
   // updateInfo = {key: value}
   const docRef = doc(db, COLLECTION_NAMES.ACCOUNT_INFO, uid);
   await updateDoc(docRef, updateInfo);
