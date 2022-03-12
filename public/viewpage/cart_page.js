@@ -5,6 +5,7 @@ import { ShoppingCart } from "../model/shopping_cart.js";
 import { currency, disableButton, enableButton, info } from "./util.js";
 import { home_page } from "./home_page.js";
 import { DEV } from "../model/constants.js";
+import { checkout } from "../controller/firestore_controller.js";
 
 
 
@@ -91,8 +92,7 @@ export async function cart_page() {
 
     try {
       //Charging is done! ==> for students in term project
-      //Save to Firebase (await)
-
+      await checkout(cart);
       info('Success!', 'Checkout Complete!');
       cart.clear();
       MENU.CartItemCount.innerHTML = 0;
