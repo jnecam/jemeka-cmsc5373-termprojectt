@@ -11,6 +11,7 @@ import { DEV } from "../model/constants.js";
 import * as Util from '../viewpage/util.js'
 import { routing, ROUTE_PATHNAMES } from "./route.js";
 import { initShoppingCart } from "../viewpage/cart_page.js";
+import { readAccountProfile } from "../viewpage/profile_page.js";
 
 const auth = getAuth();
 export let currentUser = null;
@@ -84,7 +85,7 @@ async function authStateChanged(user) {
       menus[i].style.display = 'block'
     }
 
-
+    await readAccountProfile();
     initShoppingCart();
 
 

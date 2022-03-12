@@ -1,7 +1,7 @@
 export class AccountInfo {
   constructor(data) {
     this.name = data.name;
-    this.address = datta.address;
+    this.address = data.address;
     this.city = data.city;
     this.state = data.state;
     this.zip = data.zip;
@@ -28,7 +28,8 @@ export class AccountInfo {
       state: '',
       zip: '',
       creditNo: '',
-      photoURL: `<ion-icon name="cart"></ion-icon>`,
+      photoURL: 'images/default_profile.png',
+
     });
   }
 }

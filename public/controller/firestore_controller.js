@@ -5,6 +5,7 @@ import {
   orderBy,
   getDocs,
   getDoc,
+  setDoc,
   addDoc,
   where,
   doc,
@@ -13,7 +14,6 @@ import { AccountInfo } from "../model/account_info.js";
 import { COLLECTION_NAMES } from "../model/constants.js";
 import { Product } from "../model/product.js";
 import { ShoppingCart } from "../model/shopping_cart.js";
-import { AccountInfo } from "../model/account_info.js";
 
 const db = getFirestore();
 
@@ -56,5 +56,8 @@ export async function getAccountInfo(uid) {
     return new AccountInfo(docSnap.data());
   } else {
     const defaultInfo = AccountInfo.instance();
+    const accountDocRef = doc(db, COLLECTION_NAMES.ACCOUNT_INFO, uid);
+    await setDoc(accountDocRef, defaultInfo.serialize());
+    return defaultInfo;
   }
 }
