@@ -10,3 +10,8 @@ export const COLLECTION_NAMES = {
 export const STORAGE_FOLDER_NAMES = {
     PROFILE_PHOTOS: 'profile_photos/',
 };
+
+export const CART_SUBMITTER = {
+    INC: 'INC',
+    DEC: 'DEC'
+};

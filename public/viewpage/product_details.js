@@ -1,31 +1,51 @@
 import {
-    root
-} from "./elements.js";
+    CART_SUBMITTER
+} from "../model/constants.js";
+import {
+    cart
+} from "./cart_page.js";
 
-export function product_details_page(product) {
+import {
+    MENU,
+    root
+}
+from "./elements.js";
+import {
+    updateCart
+} from "./home_page.js";
+
+export function product_details_page({
+    categories,
+    product
+}) {
 
     let html = '<h1>Product details</h1>';
 
-    html += buildProductDetailView();
+    html += buildProductDetailView(product, categories);
 
     root.innerHTML = html;
 
+    // handle product cart form event listener
+    handleProductCartFormEvent(product);
+
 }
 
-function buildProductDetailView() {
+function buildProductDetailView(product, categories) {
+    const category = categories.find(cat => cat.docId === product.categoryId);
+    let total = 0;
     return `
-<div class="row">
-        <div class="col-md-8 col-lg-6 mx-auto my-4">
-            <div class="row">
+    <div class="row">
+        <div class="col-md-10 col-lg-8 mx-auto my-4">
+            <div class="row bg-white">
                 <div class="col-6 px-0">
-                    <img src="https://images.unsplash.com/photo-1648663056968-2d3134ba2310?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80" alt="product image" class="img-fluid">
+                    <img src="${product.imageURL}" alt="${product.imageName}" class="img-fluid">
                 </div>
-                <div class="col-6 py-3">
+                <div class="col-6 py-3 ">
                     <p class="text-muted mb-1">
-                        <ion-icon name="bookmark"></ion-icon> food</p>
-                    <h4 class="text-dark">Product name goes here</h4>
+                        <ion-icon name="bookmark"></ion-icon> ${category.name}</p>
+                    <h4 class="text-dark">${product.name}</h4>
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2>$450</h2>
+                        <h2>$${product.price}</h2>
                         <div class="text-warning">
                             <ion-icon name="star"></ion-icon>
                             <ion-icon name="star"></ion-icon>
@@ -39,17 +59,18 @@ function buildProductDetailView() {
                             <ion-icon name="cart"></ion-icon>
                             Add to cart
                         </button>
-                        <form action="#" style="width: 150px">
-                            <div class="input-group">
-                                <button class="btn btn-light border-light" type="button" id="button-addon1">
+                        <div id="card style="width: 150px">
+                            <form action="#" id="product-cart__form" class="input-group">
+                                <button name="removeButton" class="btn btn-light border-light" type="submit"
+                                id="button-addon1" onClick="${total = updateCart(CART_SUBMITTER.INC, product)}">
                                     <ion-icon name="remove"></ion-icon>
                                 </button>
-                                <input type="text" class="form-control border-light" placeholder="Qty" aria-describedby="button-addon1">
-                                <button class="btn btn-light border-light" type="button" id="button-addon1">
+                                <input type="text" class="form-control border-light" name="qty" placeholder="Qty" aria-describedby="button-addon1" value="${total}" min="0">
+                                <button class="btn btn-light border-light" type="submit" name="addButton" id="button-addon1" onClick="() => {total = updateCart(CART_SUBMITTER.INC, product)}">
                                     <ion-icon name="add"></ion-icon>
                                 </button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
 
                     <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -62,8 +83,7 @@ function buildProductDetailView() {
                     </ul>
                     <div class="tab-content px-2 py-3" id="myTabContent">
                         <div class="tab-pane fade show active text-secondary" id="description" role="tabpanel" aria-labelledby="home-tab">
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam aperiam error pariatur consequatur, quidem accusamus reiciendis? Nesciunt explicabo corrupti voluptatibus neque eligendi, a ducimus quas ut dignissimos ipsum
-                                reiciendis sapiente!</p>
+                            <p>${product.summary}</p>
                         </div>
                         <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="profile-tab">
                             <!-- comment -->
@@ -86,6 +106,7 @@ function buildProductDetailView() {
                                 </div>
                             </div>
                             <!-- end comment -->
+
                             <!-- comment -->
                             <div class="d-flex my-2">
                                 <div class="flex-shrink-0">
@@ -106,6 +127,7 @@ function buildProductDetailView() {
                                 </div>
                             </div>
                             <!-- end comment -->
+
                             <!-- comment -->
                             <div class="d-flex my-2">
                                 <div class="flex-shrink-0">
@@ -131,10 +153,42 @@ function buildProductDetailView() {
                             <!-- end comment -->
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
     `;
+}
+
+function handleProductCartFormEvent(product) {
+    const cartForm = document.querySelector('#product-cart__form');
+    // @ts-ignore
+    const addButton = cartForm.addButton;
+    // @ts-ignore
+    const removeButton = cartForm.removeButton;
+
+    addButton.addEventListener('click', event => {
+        event.preventDefault();
+        cart.addItem(product);
+        // @ts-ignore
+        const result = Number(cartForm.qty.value) + 1;
+        // @ts-ignore
+        cartForm.qty.value = result < 1 ? 0 : result;
+        // document.getElementById(`item-count-${product.docId}`).innerHTML = result.toString();
+        MENU.CartItemCount.innerHTML = `${cart.getTotalQty()}`;
+    });
+    removeButton.addEventListener('click', event => {
+        event.preventDefault();
+        cart.removeItem(product);
+        // @ts-ignore
+        const result = Number(cartForm.qty.value) - 1;
+        // @ts-ignore
+        cartForm.qty.value = result < 1 ? 0 : result;
+        // document.getElementById(`item-count-${product.docId}`).innerHTML = result.toString();
+        MENU.CartItemCount.innerHTML = `${cart.getTotalQty()}`;
+    });
+
+    cartForm.addEventListener('submit', event => {
+        event.preventDefault();
+    });
 }

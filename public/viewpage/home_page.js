@@ -11,6 +11,7 @@ import {
     getProductList
 } from "../controller/firestore_controller.js";
 import {
+    CART_SUBMITTER,
     DEV
 } from "../model/constants.js";
 import {
@@ -53,7 +54,6 @@ export async function home_page() {
     } catch (e) {
         if (DEV) console.log(e);
         Util.info('Failed to get product list', JSON.stringify(e));
-
     }
 
     for (let i = 0; i < products.length; i++) {
@@ -68,24 +68,29 @@ export async function home_page() {
             e.preventDefault();
             const p = products[e.target.index.value];
             const submitter = e.target.submitter;
-            if (submitter == 'DEC') {
-                cart.removeItem(p);
-                if (p.qty > 0) --p.qty;
-            } else if (submitter == 'INC') {
-                cart.addItem(p);
-                p.qty = p.qty == null ? 1 : p.qty + 1;
-            } else {
-                if (DEV) console.log(e);
-                return;
-            }
-            const updateQty = (p.qty == null || p.qty == 0) ? 'Add' : p.qty;
+            const updateQty = updateCart(submitter, p);
             document.getElementById(`item-count-${p.docId}`).innerHTML = updateQty;
             MENU.CartItemCount.innerHTML = `${cart.getTotalQty()}`;
         });
     }
 
     handleProductNameClickEvents();
+}
 
+
+export function updateCart(submitter, product) {
+    if (submitter == CART_SUBMITTER.DEC) {
+        cart.removeItem(product);
+        if (product.qty > 0) {
+            product.qty -= 1;
+        }
+    }
+    if (submitter == CART_SUBMITTER.INC) {
+        cart.addItem(product);
+        product.qty = product.qty == null ? 1 : product.qty + 1;
+    }
+    const updateQty = (product.qty == null || product.qty == 0) ? 'Add' : product.qty;
+    return updateQty;
 }
 
 function buildProductView(product, index) {
@@ -93,26 +98,26 @@ function buildProductView(product, index) {
     return `
     <div class="card" style="width: 18rem; display: inline-block">
         <img src="${product.imageURL}" class="card-img-top">
-      <div class="card-body">
-        <h5 class="card-title">${product.name}</h5>
-        <p>Category ${category.name}</p>
-        <div class="card-text">
-        <p class="text-primary product__name" data-product-id="${product.docId}">${Util.currency(product.price)}</p>
-        <p> ${product.summary}</p>
-       <br>
+        <div class="card-body">
+            <h5 class="card-title">${product.name}</h5>
+            <p>Category ${category.name}</p>
+            <div class="card-text">
+            <p class="text-primary product__name" data-product-id="${product.docId}">${Util.currency(product.price)}</p>
+            <p> ${product.summary}</p>
+            <br>
         </div>
         <div class="container pt-3 bg-light ${currentUser ? 'd-block' : 'd-none'}">
             <form method="post" class="form-product-qty">
                 <input type="hidden" name="index" value="${index}">
                 <button class="btn btn-outline-danger" type="submit" 
-                onclick="this.form.submitter='DEC'">&minus;
+                    onclick="this.form.submitter='DEC'">&minus;
                 </button> 
                 <div id="item-count-${product.docId}"
                   class="container rounded text-center text-white bg-primary d-inline-block w-50">
                 ${product.qty == null || product.qty == 0 ? 'Add' : product.qty}
                 </div>
-                <button class="btn btn-outline-danger" type="submit" 
-                onclick="this.form.submitter='INC'">&plus;
+                <button class="btn btn-outline-danger" type="submit" onclick="this.form.submitter='INC'">
+                &plus;
                 </button> 
             </form>
         </div>
@@ -124,9 +129,13 @@ function buildProductView(product, index) {
 function handleProductNameClickEvents() {
     const productNames = Array.from(document.querySelectorAll('.product__name'));
     productNames.forEach(item => item.addEventListener('click', event => {
+        // @ts-ignore
         const productId = event.currentTarget.dataset.productId;
         const product = products.find(p => p.docId === productId);
-        product_details_page(product);
+        product_details_page({
+            categories,
+            product
+        });
     }));
 }
 
