@@ -97,7 +97,7 @@ function buildProductView(product, index) {
     const category = categories.find(cat => cat.docId === product.categoryId);
     return `
     <div class="card product__card" style="width: 18rem; display: inline-block">
-        <img src="${product.imageURL}" class="card-img-top">
+        <img src"="${product.imageURL}" class="card-img-top">
         <div class="card-body">
             <div class="d-flex align-items-center justify-content-between">
                 <p class="card-title text-primary product__name mb-0" data-product-id="${product.docId}">${product.name}</p>
