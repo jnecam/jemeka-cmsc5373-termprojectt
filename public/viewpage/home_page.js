@@ -79,13 +79,13 @@ export async function home_page() {
 
 
 export function updateCart(submitter, product) {
-    if (submitter == CART_SUBMITTER.DEC) {
+    if (cart && submitter == CART_SUBMITTER.DEC) {
         cart.removeItem(product);
         if (product.qty > 0) {
             product.qty -= 1;
         }
     }
-    if (submitter == CART_SUBMITTER.INC) {
+    if (cart && submitter == CART_SUBMITTER.INC) {
         cart.addItem(product);
         product.qty = product.qty == null ? 1 : product.qty + 1;
     }
@@ -96,13 +96,16 @@ export function updateCart(submitter, product) {
 function buildProductView(product, index) {
     const category = categories.find(cat => cat.docId === product.categoryId);
     return `
-    <div class="card" style="width: 18rem; display: inline-block">
+    <div class="card product__card" style="width: 18rem; display: inline-block">
         <img src="${product.imageURL}" class="card-img-top">
         <div class="card-body">
-            <h5 class="card-title">${product.name}</h5>
-            <p>Category ${category.name}</p>
+            <div class="d-flex align-items-center justify-content-between">
+                <p class="card-title text-primary product__name mb-0" data-product-id="${product.docId}">${product.name}</p>
+                <h3 class="font-weight-bold product__price" >${Util.currency(product.price)}</h3>
+            </div>
+            <hr />
+            <p class="mb-0 badge text-dark bg-light">Category ${category.name}</p>
             <div class="card-text">
-            <p class="text-primary product__name" data-product-id="${product.docId}">${Util.currency(product.price)}</p>
             <p> ${product.summary}</p>
             <br>
         </div>
@@ -128,22 +131,13 @@ function buildProductView(product, index) {
 
 function handleProductNameClickEvents() {
     const productNames = Array.from(document.querySelectorAll('.product__name'));
-    productNames.forEach(item => item.addEventListener('click', event => {
+    productNames.forEach(item => item.addEventListener('click', async(event) => {
         // @ts-ignore
         const productId = event.currentTarget.dataset.productId;
         const product = products.find(p => p.docId === productId);
-        product_details_page({
+        await product_details_page({
             categories,
             product
         });
     }));
 }
-
-// function handleProductNameClickEvents() {
-//   const productNames = Array.from(document.querySelectorAll('.product__name'));
-//   productNames.forEach(item => item.addEventListener('click', event => {
-//     const productId = event.currentTarget.dataset.productId;
-//     const product = products.find(p => p.docId === productId);
-//     product_details_page(product);
-//   }));
-// }

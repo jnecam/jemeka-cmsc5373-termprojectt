@@ -89,5 +89,29 @@ export async function updateAccountInfo(uid, updateInfo) {
     // updateInfo = {key: value}
     const docRef = doc(db, COLLECTION_NAMES.ACCOUNT_INFO, uid);
     await updateDoc(docRef, updateInfo);
+}
 
+
+/**
+ * Manage Revies
+ * */
+export async function addReview(reviewData) {
+    const docRef = await addDoc(collection(db, COLLECTION_NAMES.REVIEW), reviewData);
+    return docRef.docId;
+}
+
+export async function getProductReviews(productId) {
+    const q = query(collection(db, COLLECTION_NAMES.REVIEW), where("productId", "==", productId));
+    const querySnapshot = await getDocs(q);
+    const productReviews = [];
+    querySnapshot.forEach(doc => {
+        productReviews.push({
+            stars: doc.data().stars,
+            review: doc.data().review,
+            user: doc.data().user,
+            docId: doc.docId
+        });
+    });
+
+    return productReviews;
 }

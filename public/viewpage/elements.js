@@ -9,6 +9,14 @@ export const MENU = {
     CartItemCount: document.getElementById('menu-cart-item-count'),
 };
 
+export const reviewModal = {
+    modal: new bootstrap.Modal(document.getElementById('review-modal'), {
+        backdrop: 'static'
+    }),
+    title: document.getElementById('modal-review-title'),
+    body: document.getElementById('modal-review-body')
+};
+
 export const modalInfobox = {
     modal: new bootstrap.Modal(document.getElementById('modal-infobox'), {
         backdrop: 'static'

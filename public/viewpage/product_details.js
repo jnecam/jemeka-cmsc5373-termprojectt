@@ -1,23 +1,45 @@
 import {
+    currentUser
+} from "../controller/firebase_auth.js";
+import {
+    addReview,
+    getProductReviews
+} from "../controller/firestore_controller.js";
+import {
     CART_SUBMITTER
 } from "../model/constants.js";
+import {
+    Review
+} from "../model/reveiw.js";
 import {
     cart
 } from "./cart_page.js";
 
 import {
     MENU,
+    reviewModal,
     root
 }
 from "./elements.js";
 import {
     updateCart
 } from "./home_page.js";
+import {
+    disableButton,
+    enableButton
+} from "./util.js";
 
-export function product_details_page({
+var globalProduct, globalProductReviews;
+
+export async function product_details_page({
     categories,
     product
 }) {
+
+    globalProduct = product;
+    globalProductReviews = await getProductReviews(product.docId);
+    console.log('globalProductReviews: ', globalProductReviews);
+    // console.log('product: ', product);
 
     let html = '<h1>Product details</h1>';
 
@@ -26,8 +48,10 @@ export function product_details_page({
     root.innerHTML = html;
 
     // handle product cart form event listener
-    handleProductCartFormEvent(product);
 
+    handleProductCartFormEvent(product);
+    handleReviewButtonEvent();
+    // handleReviewFormEvent();
 }
 
 function buildProductDetailView(product, categories) {
@@ -54,7 +78,7 @@ function buildProductDetailView(product, categories) {
                             <ion-icon name="star-outline"></ion-icon>
                         </div>
                     </div>
-                    <div class="mb-3 d-lg-flex justify-content-between">
+                    <div class = "mb-3 justify-content-between ${currentUser ? 'd-lg-flex' : 'd-none'}">
                         <button class="btn btn-warning mb-lg-2">
                             <ion-icon name="cart"></ion-icon>
                             Add to cart
@@ -86,69 +110,12 @@ function buildProductDetailView(product, categories) {
                             <p>${product.summary}</p>
                         </div>
                         <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="profile-tab">
-                            <!-- comment -->
-                            <div class="d-flex my-2">
-                                <div class="flex-shrink-0">
-                                    <img class="img-fluid" src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="user image" width="50" height="50">
-                                </div>
-                                <div class="flex-grow-1 ms-3 text-muted">
-                                    <p class="mb-0">
-                                        <strong class="small">Bless Darah</strong><br> This is some content from a media component. You can replace this with any content and adjust it as needed.
-                                    </p>
-                                    <button class="btn btn-link text-sm p-0 m-0 d-inline-flex align-items-center justify-content-center">
-                                        <ion-icon name="pencil" size="small"></ion-icon>
-                                        edit
-                                    </button>
-                                    <button class="btn btn-link text-sm text-danger p-0 m-0 d-inline-flex align-items-center justify-content-center">
-                                        <ion-icon name="trash" size="small"></ion-icon>
-                                        <span>delete</span>
-                                    </button>
-                                </div>
+                            <div class="my-2 ${currentUser ? 'd-block' : 'd-none'}">
+                                <button class="btn btn-sm btn-secondary" id="btn-review">Review product</button>
                             </div>
-                            <!-- end comment -->
-
-                            <!-- comment -->
-                            <div class="d-flex my-2">
-                                <div class="flex-shrink-0">
-                                    <img class="img-fluid" src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="user image" width="50" height="50">
-                                </div>
-                                <div class="flex-grow-1 ms-3 text-muted">
-                                    <p class="mb-0">
-                                        <strong class="small">Bless Darah</strong><br> This is some content from a media component. You can replace this with any content and adjust it as needed.
-                                    </p>
-                                    <button class="btn btn-link text-sm p-0 m-0 d-inline-flex align-items-center justify-content-center">
-                                        <ion-icon name="pencil" size="small"></ion-icon>
-                                        edit
-                                    </button>
-                                    <button class="btn btn-link text-sm text-danger p-0 m-0 d-inline-flex align-items-center justify-content-center">
-                                        <ion-icon name="trash" size="small"></ion-icon>
-                                        <span>delete</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <!-- end comment -->
-
-                            <!-- comment -->
-                            <div class="d-flex my-2">
-                                <div class="flex-shrink-0">
-                                    <img class="img-fluid" src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="user image" width="50" height="50">
-                                </div>
-                                <div class="flex-grow-1 ms-3 text-muted">
-                                    <p class="mb-0">
-                                        <strong class="small">Bless Darah</strong><br> This is some content from a media component. You can replace this with any content and adjust it as needed.
-                                    </p>
-                                    <div class="d-none">
-                                        <button class="btn btn-link text-sm p-0 m-0 d-inline-flex align-items-center justify-content-center">
-                                            <ion-icon name="pencil" size="small"></ion-icon>
-                                            edit
-                                        </button>
-                                        <button class="btn btn-link text-sm text-danger p-0 m-0 d-inline-flex align-items-center justify-content-center">
-                                            <ion-icon name="trash" size="small"></ion-icon>
-                                            <span>delete</span>
-                                        </button>
-                                    </div>
-
-                                </div>
+                                <!-- comment -->
+                            <div id="comments-container">
+                                ${renderProductComments()}
                             </div>
                             <!-- end comment -->
                         </div>
@@ -158,6 +125,51 @@ function buildProductDetailView(product, categories) {
         </div>
     </div>
     `;
+}
+
+function renderProductComments() {
+    let html = '';
+    globalProductReviews.forEach(review => {
+        let extra = '';
+
+        if (currentUser && currentUser.email === review.user) {
+            console.log('matching values');
+            extra = `
+                <button class="btn btn-link text-sm p-0 m-0 d-inline-flex align-items-center justify-content-center">
+                    <ion-icon name="pencil" size="small"></ion-icon>
+                    edit
+                </button>
+                <button class="btn btn-link text-sm text-danger p-0 m-0 d-inline-flex align-items-center justify-content-center">
+                    <ion-icon name="trash" size="small"></ion-icon>
+                    <span>delete</span>
+                </button>
+            `;
+        }
+
+        html += `
+            <div class="d-flex my-2">
+                <div class="flex-shrink-0">
+                    <img class="img-fluid" src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="user image" width="50" height="50">
+                </div>
+                <div class="flex-grow-1 ms-3 text-muted">
+                    <p class="mb-0">
+                        <strong class="small">${review.user}</strong><br>
+                        ${review.review}
+                    </p>
+                    ${extra}
+                </div>
+            </div>
+        `;
+    });
+
+    return html;
+}
+
+function rerenderProductComments() {
+    debugger;
+    const commentsContainer = document.querySelector('#comments-container');
+    commentsContainer.innerHTML = '';
+    commentsContainer.innerHTML = renderProductComments();
 }
 
 function handleProductCartFormEvent(product) {
@@ -190,5 +202,46 @@ function handleProductCartFormEvent(product) {
 
     cartForm.addEventListener('submit', event => {
         event.preventDefault();
+    });
+}
+
+function handleReviewButtonEvent() {
+    const reviewButton = document.querySelector('#btn-review');
+    reviewButton.addEventListener('click', event => {
+        event.preventDefault();
+        reviewModal.title.textContent = "Create new product review";
+        reviewModal.modal.show();
+        handleReviewFormEvent();
+    });
+}
+
+function handleReviewFormEvent() {
+    const reviewForm = document.querySelector('#review-modal-form');
+    const submitButton = reviewForm.querySelector('button');
+    reviewForm.addEventListener('submit', async(event) => {
+        event.preventDefault();
+        // @ts-ignore
+        const formData = {
+            stars: event.currentTarget.stars.value,
+            review: event.target.review.value,
+            productId: globalProduct.docId
+        };
+        const reviewData = new Review(formData);
+        try {
+            const buttonLabel = disableButton(submitButton);
+            await addReview(reviewData.serialize());
+            globalProductReviews.unshift({
+                ...formData,
+                user: currentUser.email
+            });
+            reviewForm.reset();
+            enableButton(submitButton, buttonLabel);
+            reviewModal.modal.hide();
+            rerenderProductComments();
+        } catch (err) {
+            console.log('error: ', err);
+        }
+
+        console.log('formData: ', formData);
     });
 }

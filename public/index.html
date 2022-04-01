@@ -19,8 +19,8 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+                <span class="navbar-toggler-icon"></span>
+            </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item modal-preauth">
@@ -36,11 +36,14 @@
                         <button id="menu-signout" class="btn btn-outline-danger">Sign Out</button>
                     </li>
                 </ul>
-                <button id="menu-cart" class="btn btn-outline-success modal-postauth"> <ion-icon name="cart"></ion-icon>
-        (<span id="menu-cart-item-count">0</span>)
-        </button>
+                <button id="menu-cart" class="btn btn-outline-success modal-postauth">
+                    <ion-icon name="cart"></ion-icon>
+                    (<span id="menu-cart-item-count">0</span>)
+                </button>
 
-                <button id="menu-profile" class="btn btn-outline-success modal-postauth"> <ion-icon name="person"></ion-icon></button>
+                <button id="menu-profile" class="btn btn-outline-success modal-postauth">
+                    <ion-icon name="person"></ion-icon>
+                </button>
             </div>
         </div>
     </nav>
@@ -136,6 +139,69 @@
     </div>
 
 
+    <!-- basic dialogue modal -->
+    <!-- Modal: Transaction  - purchase history -->
+    <div class="modal fade" id="review-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modal-review-title" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal-review-title"></h5>
+                </div>
+                <div class="modal-body" id="modal-review-body">
+                    <form action="" id="review-modal-form" name="review-modal-form">
+                        <div class="form-group mb-2">
+                            <p class="mb-0">
+                                Start rating
+                                <ion-icon name="star" class="text-warning"></ion-icon>
+                            </p>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input py-0" type="radio" name="stars" value="1" id="star1">
+                                <label class="form-check-label" for="star1">
+                                    1 star
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input py-0" type="radio" name="stars" value="2" id="star2">
+                                <label class="form-check-label" for="star2">
+                                    2 stars
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input py-0" type="radio" name="stars" value="3" id="star3">
+                                <label class="form-check-label" for="star3">
+                                    3 stars
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input py-0" type="radio" name="stars" value="4" id="star4">
+                                <label class="form-check-label" for="star4">
+                                    4 stars
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input py-0" type="radio" name="stars" value="5" id="star5">
+                                <label class="form-check-label" for="star5">
+                                    5 stars
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="review" class="mb-1">Enter your review (max: 200 characters)</label>
+                            <textarea name="review" id="review" name="review" cols="10" rows="3" class="form-control"></textarea>
+                        </div>
+                        <div class="form-group mt-2">
+                            <button class="btn btn-primary" type="submit">Save</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div id="root" class="bg-light p-5 p-3"></div>
 
     <script type="module">
@@ -151,7 +217,8 @@
 
 
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
+    </script>
 
 </body>
 
