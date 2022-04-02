@@ -52,10 +52,12 @@ export async function product_details_page({
     handleProductCartFormEvent(product);
     handleReviewButtonEvent();
     // handleReviewFormEvent();
+
 }
 
 function buildProductDetailView(product, categories) {
     const category = categories.find(cat => cat.docId === product.categoryId);
+    const stars = renderStarRating();
     let total = 0;
     return `
     <div class="row">
@@ -71,11 +73,8 @@ function buildProductDetailView(product, categories) {
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2>$${product.price}</h2>
                         <div class="text-warning">
-                            <ion-icon name="star"></ion-icon>
-                            <ion-icon name="star"></ion-icon>
-                            <ion-icon name="star"></ion-icon>
-                            <ion-icon name="star"></ion-icon>
-                            <ion-icon name="star-outline"></ion-icon>
+                            ${stars.content}
+                            <span class="text-secondary">${stars.averageRating} / 5</span>
                         </div>
                     </div>
                     <div class = "mb-3 justify-content-between ${currentUser ? 'd-lg-flex' : 'd-none'}">
@@ -125,6 +124,22 @@ function buildProductDetailView(product, categories) {
         </div>
     </div>
     `;
+}
+
+function renderStarRating() {
+    const totalRating = globalProductReviews.reduce((total, review) => total + review.stars, 0);
+    const averageRating = Math.round(totalRating / globalProductReviews.length);
+    let stars = '';
+    for (let count = 0; count < averageRating; count++) {
+        stars += '<ion-icon name="star"></ion-icon>';
+    }
+    for (let count = 0; count < (5 - averageRating); count++) {
+        stars += '<ion-icon name="star-outline"></ion-icon>';
+    }
+    return {
+        content: stars,
+        averageRating
+    };
 }
 
 function renderProductComments() {
