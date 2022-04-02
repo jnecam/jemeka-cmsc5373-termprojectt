@@ -100,6 +100,17 @@ export async function addReview(reviewData) {
     return docRef.docId;
 }
 
+export async function updateReview(reviewData) {
+    try {
+        const q = query(collection(db, COLLECTION_NAMES.REVIEW), where("docId", "==", reviewData.docId));
+        await updateDoc(q);
+        return;
+    } catch (err) {
+        console.log("error: ", err);
+        return;
+    }
+}
+
 export async function getProductReviews(productId) {
     const q = query(collection(db, COLLECTION_NAMES.REVIEW), where("productId", "==", productId));
     const querySnapshot = await getDocs(q);
@@ -109,7 +120,7 @@ export async function getProductReviews(productId) {
             stars: doc.data().stars,
             review: doc.data().review,
             user: doc.data().user,
-            docId: doc.docId
+            docId: doc.id
         });
     });
 

@@ -3,10 +3,12 @@ import {
 } from "../controller/firebase_auth.js";
 import {
     addReview,
-    getProductReviews
+    getProductReviews,
+    updateReview
 } from "../controller/firestore_controller.js";
 import {
-    CART_SUBMITTER
+    CART_SUBMITTER,
+    CRUD_MODE
 } from "../model/constants.js";
 import {
     Review
@@ -29,7 +31,7 @@ import {
     enableButton
 } from "./util.js";
 
-var globalProduct, globalProductReviews;
+var globalProduct, globalProductReviews, currentReview;
 
 export async function product_details_page({
     categories,
@@ -49,10 +51,14 @@ export async function product_details_page({
 
     // handle product cart form event listener
 
-    handleProductCartFormEvent(product);
-    handleReviewButtonEvent();
-    // handleReviewFormEvent();
+    handleCoreEventListeners();
 
+}
+
+function handleCoreEventListeners() {
+    handleProductCartFormEvent(globalProduct);
+    handleReviewButtonEvent();
+    handleCommentEvents();
 }
 
 function buildProductDetailView(product, categories) {
@@ -144,17 +150,17 @@ function renderStarRating() {
 
 function renderProductComments() {
     let html = '';
-    globalProductReviews.forEach(review => {
+    globalProductReviews.forEach((review, reviewIndex) => {
         let extra = '';
 
         if (currentUser && currentUser.email === review.user) {
             console.log('matching values');
             extra = `
-                <button class="btn btn-link text-sm p-0 m-0 d-inline-flex align-items-center justify-content-center">
+                <button class="btn btn-link text-sm p-0 m-0 d-inline-flex align-items-center justify-content-center edit-comment-btn" data-index="${reviewIndex}">
                     <ion-icon name="pencil" size="small"></ion-icon>
                     edit
                 </button>
-                <button class="btn btn-link text-sm text-danger p-0 m-0 d-inline-flex align-items-center justify-content-center">
+                <button class="btn btn-link text-sm text-danger p-0 m-0 d-inline-flex align-items-center justify-content-center delete-comment-btn" data-index="${reviewIndex}">
                     <ion-icon name="trash" size="small"></ion-icon>
                     <span>delete</span>
                 </button>
@@ -181,10 +187,38 @@ function renderProductComments() {
 }
 
 function rerenderProductComments() {
-    debugger;
     const commentsContainer = document.querySelector('#comments-container');
     commentsContainer.innerHTML = '';
     commentsContainer.innerHTML = renderProductComments();
+    handleCoreEventListeners();
+}
+
+function handleCommentEvents() {
+    const editButtons = Array.from(document.querySelectorAll('.edit-comment-btn'));
+    editButtons.forEach(button => button.addEventListener('click', async event => {
+        event.preventDefault();
+        // @ts-ignore
+        reviewModal.form.reset();
+        reviewModal.form.dataset.crudeMode = CRUD_MODE.EDIT;
+
+        // @ts-ignore
+        const reviewIndex = event.target.dataset.index;
+        currentReview = globalProductReviews.at(reviewIndex);
+
+        /* set form values */
+        // @ts-ignore
+        reviewModal.form.review.value = currentReview.review;
+
+        // check the appropriate star
+        if (currentReview.stars > 0) {
+            const activeButton = reviewModal.form.querySelector(`input[value="${currentReview.stars}"]`);
+            // @ts-ignore
+            activeButton.checked = true;
+        }
+
+        reviewModal.modal.show();
+        handleReviewFormEvent();
+    }));
 }
 
 function handleProductCartFormEvent(product) {
@@ -224,6 +258,7 @@ function handleReviewButtonEvent() {
     const reviewButton = document.querySelector('#btn-review');
     reviewButton.addEventListener('click', event => {
         event.preventDefault();
+        reviewModal.form.dataset.crudeMode = CRUD_MODE.CREATE;
         reviewModal.title.textContent = "Create new product review";
         reviewModal.modal.show();
         handleReviewFormEvent();
@@ -233,6 +268,8 @@ function handleReviewButtonEvent() {
 function handleReviewFormEvent() {
     const reviewForm = document.querySelector('#review-modal-form');
     const submitButton = reviewForm.querySelector('button');
+    const crudMode = reviewForm.dataset.crudMode;
+
     reviewForm.addEventListener('submit', async(event) => {
         event.preventDefault();
         // @ts-ignore
@@ -244,11 +281,23 @@ function handleReviewFormEvent() {
         const reviewData = new Review(formData);
         try {
             const buttonLabel = disableButton(submitButton);
-            await addReview(reviewData.serialize());
-            globalProductReviews.unshift({
-                ...formData,
-                user: currentUser.email
-            });
+
+            if (crudMode === CRUD_MODE.EDIT) {
+                const serializedData = {
+                    ...reviewData.serialize(),
+                    docId: globalProduct.docId
+                };
+                await updateReview(serializedData);
+                globalProductReviews = await getProductReviews(globalProduct.docId);
+                return;
+            } else {
+                await addReview(reviewData.serialize());
+                globalProductReviews.unshift({
+                    ...formData,
+                    user: currentUser.email
+                });
+            }
+
             reviewForm.reset();
             enableButton(submitButton, buttonLabel);
             reviewModal.modal.hide();
@@ -256,7 +305,5 @@ function handleReviewFormEvent() {
         } catch (err) {
             console.log('error: ', err);
         }
-
-        console.log('formData: ', formData);
     });
 }

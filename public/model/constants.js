@@ -16,3 +16,9 @@ export const CART_SUBMITTER = {
     INC: 'INC',
     DEC: 'DEC'
 };
+
+export const CRUD_MODE = {
+    CREATE: 'create',
+    EDIT: 'edit',
+    DELETE: 'delete'
+};

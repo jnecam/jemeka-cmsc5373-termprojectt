@@ -14,7 +14,8 @@ export const reviewModal = {
         backdrop: 'static'
     }),
     title: document.getElementById('modal-review-title'),
-    body: document.getElementById('modal-review-body')
+    body: document.getElementById('modal-review-body'),
+    form: document.getElementById('review-modal-form')
 };
 
 export const modalInfobox = {
