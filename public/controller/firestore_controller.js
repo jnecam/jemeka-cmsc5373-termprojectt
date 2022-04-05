@@ -7,6 +7,7 @@ import {
     getDoc,
     setDoc,
     addDoc,
+    deleteDoc,
     where,
     doc,
     updateDoc,
@@ -104,6 +105,16 @@ export async function updateReview(reviewData) {
     try {
         const q = query(collection(db, COLLECTION_NAMES.REVIEW), where("docId", "==", reviewData.docId));
         await updateDoc(q);
+        return;
+    } catch (err) {
+        console.log("error: ", err);
+        return;
+    }
+}
+export async function deleteReview(docId) {
+    try {
+        const q = query(collection(db, COLLECTION_NAMES.REVIEW), where("docId", "==", docId));
+        await deleteDoc(q);
         return;
     } catch (err) {
         console.log("error: ", err);

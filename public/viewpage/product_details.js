@@ -3,6 +3,7 @@ import {
 } from "../controller/firebase_auth.js";
 import {
     addReview,
+    deleteReview,
     getProductReviews,
     updateReview
 } from "../controller/firestore_controller.js";
@@ -51,14 +52,10 @@ export async function product_details_page({
 
     // handle product cart form event listener
 
-    handleCoreEventListeners();
-
-}
-
-function handleCoreEventListeners() {
     handleProductCartFormEvent(globalProduct);
     handleReviewButtonEvent();
     handleCommentEvents();
+
 }
 
 function buildProductDetailView(product, categories) {
@@ -190,11 +187,14 @@ function rerenderProductComments() {
     const commentsContainer = document.querySelector('#comments-container');
     commentsContainer.innerHTML = '';
     commentsContainer.innerHTML = renderProductComments();
-    handleCoreEventListeners();
+    handleCommentEvents();
+    // handleCoreEventListeners();
 }
 
 function handleCommentEvents() {
     const editButtons = Array.from(document.querySelectorAll('.edit-comment-btn'));
+    const deleteButtons = Array.from(document.querySelectorAll('.delete-comment-btn'));
+
     editButtons.forEach(button => button.addEventListener('click', async event => {
         event.preventDefault();
         // @ts-ignore
@@ -218,6 +218,32 @@ function handleCommentEvents() {
 
         reviewModal.modal.show();
         handleReviewFormEvent();
+    }));
+
+    deleteButtons.forEach(button => button.addEventListener('click', async event => {
+        event.preventDefault();
+
+        // @ts-ignore
+        const reviewIndex = event.currentTarget.dataset.index;
+        currentReview = globalProductReviews.at(reviewIndex);
+
+        const shouldDelete = confirm("Are you sure you want to delete this comment?");
+        if (shouldDelete) {
+            try {
+                console.log('current review: ', currentReview);
+                await deleteReview(currentReview.docId);
+                // remove review from global review state
+                globalProductReviews = globalProductReviews
+                    .filter(review => review.docId !== currentReview.docId);
+
+                // recompute average rating of the product
+                // rerender reviews
+                rerenderProductComments();
+            } catch (err) {
+                console.log('Error deleting review: ', err);
+            }
+        }
+
     }));
 }
 
@@ -268,13 +294,16 @@ function handleReviewButtonEvent() {
 function handleReviewFormEvent() {
     const reviewForm = document.querySelector('#review-modal-form');
     const submitButton = reviewForm.querySelector('button');
+    // @ts-ignore
     const crudMode = reviewForm.dataset.crudMode;
 
     reviewForm.addEventListener('submit', async(event) => {
         event.preventDefault();
         // @ts-ignore
         const formData = {
+            // @ts-ignore
             stars: event.currentTarget.stars.value,
+            // @ts-ignore
             review: event.target.review.value,
             productId: globalProduct.docId
         };
@@ -298,6 +327,7 @@ function handleReviewFormEvent() {
                 });
             }
 
+            // @ts-ignore
             reviewForm.reset();
             enableButton(submitButton, buttonLabel);
             reviewModal.modal.hide();
