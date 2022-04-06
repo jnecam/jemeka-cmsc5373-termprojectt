@@ -5,6 +5,7 @@ import {
     addReview,
     deleteReview,
     getProductReviews,
+    getPurchaseHistory,
     updateReview
 } from "../controller/firestore_controller.js";
 import {
@@ -33,6 +34,7 @@ import {
 } from "./util.js";
 
 var globalProduct, globalProductReviews, currentReview, crudMode;
+var listOfPurchasedItems;
 
 export async function product_details_page({
     categories,
@@ -41,8 +43,13 @@ export async function product_details_page({
 
     globalProduct = product;
     globalProductReviews = await getProductReviews(product.docId);
-    console.log('globalProductReviews: ', globalProductReviews);
-    // console.log('product: ', product);
+
+    // handle purchase history
+    const purchaseHistory = await getPurchaseHistory(currentUser.uid);
+    listOfPurchasedItems = purchaseHistory
+        .map(purchase => purchase.items)
+        .flat()
+        .map(item => item.name);
 
     let html = '<h1>Product details</h1>';
 
@@ -58,10 +65,18 @@ export async function product_details_page({
 
 }
 
+function canReviewProduct() {
+    const hasPurchasedBefore = listOfPurchasedItems.includes(globalProduct.name.toLowerCase()) ? true : false;
+    // check if all product review does not contain user email
+    const hasReviewdProductBefore = globalProductReviews.filter(review => review.user === currentUser.email).length > 0 ? true : false;
+    return hasPurchasedBefore && !hasReviewdProductBefore;
+}
+
 function buildProductDetailView(product, categories) {
     const category = categories.find(cat => cat.docId === product.categoryId);
     const stars = renderStarRating();
     let total = 0;
+
     return `
     <div class="row">
         <div class="col-md-10 col-lg-8 mx-auto my-4">
@@ -77,7 +92,7 @@ function buildProductDetailView(product, categories) {
                         <h2>$${product.price}</h2>
                         <div class="text-warning">
                             ${stars.content}
-                            <span class="text-secondary">${stars.averageRating} / 5</span>
+                            <span class="text-secondary">${stars.averageRating || 0} / 5</span>
                         </div>
                     </div>
                     <div class = "mb-3 justify-content-between ${currentUser ? 'd-lg-flex' : 'd-none'}">
@@ -112,7 +127,7 @@ function buildProductDetailView(product, categories) {
                             <p>${product.summary}</p>
                         </div>
                         <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="profile-tab">
-                            <div class="my-2 ${currentUser ? 'd-block' : 'd-none'}">
+                            <div class="my-2 ${canReviewProduct() ? 'd-block' : 'd-none'}">
                                 <button class="btn btn-sm btn-secondary" id="btn-review">Review product</button>
                             </div>
                                 <!-- comment -->
@@ -321,13 +336,15 @@ function handleReviewFormEvent() {
                     docId: currentReview.docId
                 };
                 await updateReview(serializedData);
-                globalProductReviews = await getProductReviews(globalProduct.docId);
-            } else {
+                const allReviews = await getProductReviews(globalProduct.docId);
+                globalProductReviews = Array.from(new Set(allReviews));
+            } else { // if crud mode is create
                 await addReview(reviewData.serialize());
                 globalProductReviews.unshift({
                     ...formData,
                     user: currentUser.email
                 });
+                globalProductReviews = Array.from(new Set(globalProductReviews));
             }
 
             // @ts-ignore

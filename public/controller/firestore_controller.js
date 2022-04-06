@@ -139,6 +139,7 @@ export async function getProductReviews(productId) {
             stars: doc.data().stars,
             review: doc.data().review,
             user: doc.data().user,
+            productId: doc.data().productId,
             docId: doc.id
         });
     });

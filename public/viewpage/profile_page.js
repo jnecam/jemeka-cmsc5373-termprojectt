@@ -234,7 +234,7 @@ export async function profile_page() {
 }
 export async function readAccountProfile() {
     try {
-        accountInfo = await getAccountInfo(currentUser.uid)
+        accountInfo = await getAccountInfo(currentUser.uid);
     } catch (e) {
         if (DEV) console.log(e);
         info(`Failed to retrieve account info for ${currentUser.email}`, JSON.stringify(e));

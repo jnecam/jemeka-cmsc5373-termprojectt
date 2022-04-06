@@ -1,37 +1,57 @@
-import { MENU, root } from "./elements.js";
-import { ROUTE_PATHNAMES } from "../controller/route.js";
-import { currentUser } from "../controller/firebase_auth.js";
-import { ShoppingCart } from "../model/shopping_cart.js";
-import { currency, disableButton, enableButton, info } from "./util.js";
-import { home_page } from "./home_page.js";
-import { DEV } from "../model/constants.js";
-import { checkout } from "../controller/firestore_controller.js";
+import {
+    MENU,
+    root
+} from "./elements.js";
+import {
+    ROUTE_PATHNAMES
+} from "../controller/route.js";
+import {
+    currentUser
+} from "../controller/firebase_auth.js";
+import {
+    ShoppingCart
+} from "../model/shopping_cart.js";
+import {
+    currency,
+    disableButton,
+    enableButton,
+    info
+} from "./util.js";
+import {
+    home_page
+} from "./home_page.js";
+import {
+    DEV
+} from "../model/constants.js";
+import {
+    checkout
+} from "../controller/firestore_controller.js";
 
 
 
 export function addEventListeners() {
-  MENU.Cart.addEventListener('click', async() => {
-    history.pushState(null, null, ROUTE_PATHNAMES.CART);
+    MENU.Cart.addEventListener('click', async() => {
+        history.pushState(null, null, ROUTE_PATHNAMES.CART);
 
-    await cart_page();
-  });
+        await cart_page();
+    });
 }
 
 
 export let cart;
 
 export async function cart_page() {
-  if (!currentUser) {
-    root.innerHTML = '<h1>Protected Page</h1>'
-    return;
-  }
-  let html = '<h1>Shopping Cart</h1>'
-  if (!cart || cart.getTotalQty() == 0) {
-    html += '<h3>Empty! Buy More!</h3>'
-    root.innerHTML = html;
-    return;
-  }
-  html = `
+    if (!currentUser) {
+        root.innerHTML = '<h1>Protected Page</h1>';
+        return;
+    }
+    let html = '<h1>Shopping Cart</h1>';
+    if (!cart || cart.getTotalQty() == 0) {
+        html += '<h3>Empty! Buy More!</h3>';
+        root.innerHTML = html;
+        return;
+    }
+    html = `
   
   <table class="table">
   <thead>
@@ -48,8 +68,8 @@ export async function cart_page() {
   <tbody>
   `;
 
-  cart.items.forEach(item => {
-    html += `
+    cart.items.forEach(item => {
+        html += `
       <tr>
         <td><img src="${item.imageURL}" width="150px"></td>
         <td>${item.name}</td>
@@ -59,15 +79,15 @@ export async function cart_page() {
         <td>${(item.summary)}</td>
       </tr>
 `;
-  });
+    });
 
-  html += '</tbody></table>';
+    html += '</tbody></table>';
 
-  html += `
+    html += `
       <div class="fs-3">TOTAL: ${currency(cart.getTotalPrice())}</div>
   `;
 
-  html += `
+    html += `
      <button id="button-checkout" class="btn btn-outline-primary">Check Out</button>
      <button id="button-continue-shopping" class="btn btn-outline-secondary">Continue Shopping</button>
      
@@ -75,40 +95,40 @@ export async function cart_page() {
 
 
 
-  root.innerHTML = html;
+    root.innerHTML = html;
 
-  const continueButton = document.getElementById('button-continue-shopping');
-  continueButton.addEventListener('click', async() => {
-    history.pushState(null, null, ROUTE_PATHNAMES.HOME);
-    const label = disableButton(continueButton);
-    await home_page();
+    const continueButton = document.getElementById('button-continue-shopping');
+    continueButton.addEventListener('click', async() => {
+        history.pushState(null, null, ROUTE_PATHNAMES.HOME);
+        const label = disableButton(continueButton);
+        await home_page();
 
-    enableButton(continueButton, label);
-  });
+        enableButton(continueButton, label);
+    });
 
-  const checkoutButton = document.getElementById('button-checkout');
-  checkoutButton.addEventListener('click', async() => {
-    const label = disableButton(checkoutButton);
+    const checkoutButton = document.getElementById('button-checkout');
+    checkoutButton.addEventListener('click', async() => {
+        const label = disableButton(checkoutButton);
 
-    try {
-      //Charging is done! ==> for students in term project
-      await checkout(cart);
-      info('Success!', 'Checkout Complete!');
-      cart.clear();
-      MENU.CartItemCount.innerHTML = 0;
-      history.pushState(null, null, ROUTE_PATHNAMES.HOME);
-      await home_page();
-    } catch (e) {
-      if (DEV) console.log(e);
-      info('Checkout failed', JSON.stringify(e));
-    }
-    enableButton(checkoutButton, label);
+        try {
+            //Charging is done! ==> for students in term project
+            await checkout(cart);
+            info('Success!', 'Checkout Complete!');
+            cart.clear();
+            MENU.CartItemCount.innerHTML = 0;
+            history.pushState(null, null, ROUTE_PATHNAMES.HOME);
+            await home_page();
+        } catch (e) {
+            if (DEV) console.log(e);
+            info('Checkout failed', JSON.stringify(e));
+        }
+        enableButton(checkoutButton, label);
 
-  });
+    });
 
 }
 
 export function initShoppingCart() {
-  cart = new ShoppingCart(currentUser.uid);
-  MENU.CartItemCount.innerHTML = 0;
+    cart = new ShoppingCart(currentUser.uid);
+    MENU.CartItemCount.innerHTML = 0;
 }
