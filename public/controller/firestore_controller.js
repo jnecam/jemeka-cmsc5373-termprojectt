@@ -103,19 +103,27 @@ export async function addReview(reviewData) {
 
 export async function updateReview(reviewData) {
     try {
-        const q = query(collection(db, COLLECTION_NAMES.REVIEW), where("docId", "==", reviewData.docId));
-        await updateDoc(q);
+        const q = query(collection(db, COLLECTION_NAMES.REVIEW), where("productId", "==", reviewData.docId));
+        const docRef = doc(db, COLLECTION_NAMES.REVIEW, reviewData.docId);
+        await updateDoc(docRef, reviewData);
         return;
     } catch (err) {
         console.log("error: ", err);
         return;
     }
 }
+
+/**
+ * Delete a review
+ * @param {string} docId document id
+ * @returns boolean
+ */
 export async function deleteReview(docId) {
     try {
-        const q = query(collection(db, COLLECTION_NAMES.REVIEW), where("docId", "==", docId));
-        await deleteDoc(q);
-        return;
+        // const q = query(collection(db, COLLECTION_NAMES.REVIEW), where("uid", "==", docId));
+        const docRef = doc(db, COLLECTION_NAMES.REVIEW, docId);
+        await deleteDoc(docRef);
+        return true;
     } catch (err) {
         console.log("error: ", err);
         return;

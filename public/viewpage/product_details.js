@@ -32,7 +32,7 @@ import {
     enableButton
 } from "./util.js";
 
-var globalProduct, globalProductReviews, currentReview;
+var globalProduct, globalProductReviews, currentReview, crudMode;
 
 export async function product_details_page({
     categories,
@@ -199,11 +199,12 @@ function handleCommentEvents() {
         event.preventDefault();
         // @ts-ignore
         reviewModal.form.reset();
-        reviewModal.form.dataset.crudeMode = CRUD_MODE.EDIT;
+        crudMode = CRUD_MODE.EDIT;
 
         // @ts-ignore
         const reviewIndex = event.target.dataset.index;
         currentReview = globalProductReviews.at(reviewIndex);
+        console.log('current review: ', currentReview);
 
         /* set form values */
         // @ts-ignore
@@ -230,8 +231,8 @@ function handleCommentEvents() {
         const shouldDelete = confirm("Are you sure you want to delete this comment?");
         if (shouldDelete) {
             try {
-                console.log('current review: ', currentReview);
                 await deleteReview(currentReview.docId);
+
                 // remove review from global review state
                 globalProductReviews = globalProductReviews
                     .filter(review => review.docId !== currentReview.docId);
@@ -283,8 +284,11 @@ function handleProductCartFormEvent(product) {
 function handleReviewButtonEvent() {
     const reviewButton = document.querySelector('#btn-review');
     reviewButton.addEventListener('click', event => {
+        // @ts-ignore
+        reviewModal.form.reset();
+
         event.preventDefault();
-        reviewModal.form.dataset.crudeMode = CRUD_MODE.CREATE;
+        crudMode = CRUD_MODE.CREATE;
         reviewModal.title.textContent = "Create new product review";
         reviewModal.modal.show();
         handleReviewFormEvent();
@@ -295,7 +299,7 @@ function handleReviewFormEvent() {
     const reviewForm = document.querySelector('#review-modal-form');
     const submitButton = reviewForm.querySelector('button');
     // @ts-ignore
-    const crudMode = reviewForm.dataset.crudMode;
+    // const crudMode = reviewForm.dataset.crudMode;
 
     reviewForm.addEventListener('submit', async(event) => {
         event.preventDefault();
@@ -314,11 +318,10 @@ function handleReviewFormEvent() {
             if (crudMode === CRUD_MODE.EDIT) {
                 const serializedData = {
                     ...reviewData.serialize(),
-                    docId: globalProduct.docId
+                    docId: currentReview.docId
                 };
                 await updateReview(serializedData);
                 globalProductReviews = await getProductReviews(globalProduct.docId);
-                return;
             } else {
                 await addReview(reviewData.serialize());
                 globalProductReviews.unshift({
@@ -329,6 +332,10 @@ function handleReviewFormEvent() {
 
             // @ts-ignore
             reviewForm.reset();
+
+            // @ts-ignore
+            // reviewForm.dataset.crudMode = CRUD_MODE.CREATE;
+
             enableButton(submitButton, buttonLabel);
             reviewModal.modal.hide();
             rerenderProductComments();
