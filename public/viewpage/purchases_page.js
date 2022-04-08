@@ -5,7 +5,7 @@ import {
 import {
     ROUTE_PATHNAMES
 } from "../controller/route.js";
-import * as Util from './util.js'
+import * as Util from './util.js';
 import {
     currentUser
 } from "../controller/firebase_auth.js";
@@ -30,11 +30,11 @@ export function addEventListeners() {
 
 export async function purchases_page() {
     if (!currentUser) {
-        root.innerHTML = '<h1>Purchases Page</h1>'
+        root.innerHTML = '<h1>Purchases Page</h1>';
         return;
     }
 
-    let html = '<h1>Purchases Page</h1>'
+    let html = '<h1>Purchases Page</h1>';
 
     let carts;
 
@@ -43,14 +43,14 @@ export async function purchases_page() {
         console.log("purchase history: ", carts);
 
         if (carts.length == 0) {
-            html += '<h3>No purchase history found!</h3>'
+            html += '<h3>No purchase history found!</h3>';
             root.innerHTML = html;
             return;
         }
     } catch (e) {
         if (DEV) console.log(e);
         Util.info('Error in getPurchaseHistory', JSON.stringify(e));
-        root.innerHTML = '<h1>Failed to get purchase history</h1>'
+        root.innerHTML = '<h1>Failed to get purchase history</h1>';
         return;
 
     }
@@ -87,6 +87,8 @@ export async function purchases_page() {
 
     root.innerHTML = html;
 
+    // handleProductNameEvents();
+
     const detailsForm = document.getElementsByClassName('form-purchase-details');
     for (let i = 0; i < detailsForm.length; i++) {
         detailsForm[i].addEventListener('submit', e => {
@@ -95,9 +97,15 @@ export async function purchases_page() {
             modaltransaction.title.innerHTML = `Purchase At: ${new Date(carts[index].timestamp).toString()}`;
             modaltransaction.body.innerHTML = buildTransactionView(carts[index]);
             modaltransaction.modal.show();
-
         });
     }
+}
+
+function handleProductNameEvents() {
+    const productNames = Array.from(document.querySelectorAll('.product__name'));
+    productNames.forEach(productName => productName.addEventListener('click', () => {
+        // get the current product that has been clicked
+    }));
 }
 
 function buildTransactionView(cart) {
@@ -116,10 +124,13 @@ function buildTransactionView(cart) {
 <tbody>
 `;
     cart.items.forEach(p => {
+        console.log('cart product: ', p);
         html += `
     <tr>
       <td><img src="${p.imageURL}"></td>
-      <td>${p.name}</td>
+      <td>
+        <p class="product__name pb-0 text-primary">${p.name}</p>
+      </td>
       <td>${Util.currency(p.price)}</td>
       <td>${p.qty}</td>
       <td>${Util.currency(p.price * p.qty)}</td>
@@ -129,7 +140,7 @@ function buildTransactionView(cart) {
   `;
     });
 
-    html += '</tbody></table>'
+    html += '</tbody></table>';
     html += `
     <div class="fs-3">Total: ${Util.currency(cart.getTotalPrice())}</div>
   `;

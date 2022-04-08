@@ -47,3 +47,14 @@ li.nav-item {
 .product__name:hover {
     text-decoration: underline;
 }
+
+.product__name {
+    cursor: pointer;
+    opacity: 1;
+    transition: all 250ms ease-in-out;
+}
+
+.product__name:hover {
+    opacity: .85;
+    text-decoration: underline;
+}

@@ -60,6 +60,7 @@ export async function product_details_page({
     // handle product cart form event listener
 
     handleProductCartFormEvent(globalProduct);
+    handleProductCartButtonEvents();
     handleReviewButtonEvent();
     handleCommentEvents();
 
@@ -91,8 +92,10 @@ function buildProductDetailView(product, categories) {
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2>$${product.price}</h2>
                         <div class="text-warning">
-                            ${stars.content}
-                            <span class="text-secondary">${stars.averageRating || 0} / 5</span>
+                            <div id="stars__content">
+                                ${stars.content}
+                            </div>
+                            <span class="text-secondary" id="average__rating">${stars.averageRating || 0} / 5</span>
                         </div>
                     </div>
                     <div class = "mb-3 justify-content-between ${currentUser ? 'd-lg-flex' : 'd-none'}">
@@ -103,11 +106,11 @@ function buildProductDetailView(product, categories) {
                         <div id="card style="width: 150px">
                             <form action="#" id="product-cart__form" class="input-group">
                                 <button name="removeButton" class="btn btn-light border-light" type="submit"
-                                id="button-addon1" onClick="${total = updateCart(CART_SUBMITTER.INC, product)}">
+                                id="cart-plus">
                                     <ion-icon name="remove"></ion-icon>
                                 </button>
-                                <input type="text" class="form-control border-light" name="qty" placeholder="Qty" aria-describedby="button-addon1" value="${total}" min="0">
-                                <button class="btn btn-light border-light" type="submit" name="addButton" id="button-addon1" onClick="() => {total = updateCart(CART_SUBMITTER.INC, product)}">
+                                <input type="text" class="form-control border-light" name="qty" placeholder="Qty" id="product__input" aria-describedby="button-addon1" value="${total}" min="0">
+                                <button class="btn btn-light border-light" type="submit" name="addButton" id="cart-minus">
                                     <ion-icon name="add"></ion-icon>
                                 </button>
                             </form>
@@ -144,9 +147,24 @@ function buildProductDetailView(product, categories) {
     `;
 }
 
+function handleProductCartButtonEvents() {
+    const plusButton = document.querySelector('#cart-plus');
+    const minusButton = document.querySelector('#cart-minus');
+    const productInput = document.querySelector('#product__input');
+
+    plusButton.addEventListener('click', event => {
+        const total = updateCart(CART_SUBMITTER.INC, globalProduct);
+        productInput.value = total;
+    });
+    minusButton.addEventListener('click', event => {
+        const total = updateCart(CART_SUBMITTER.DEC, globalProduct);
+        productInput.value = total;
+    });
+}
+
 function renderStarRating() {
     const totalRating = globalProductReviews.reduce((total, review) => total + review.stars, 0);
-    const averageRating = Math.round(totalRating / globalProductReviews.length);
+    const averageRating = (globalProductReviews.length > 0) ? Math.round(totalRating / globalProductReviews.length) : 0;
     let stars = '';
     for (let count = 0; count < averageRating; count++) {
         stars += '<ion-icon name="star"></ion-icon>';
@@ -160,13 +178,21 @@ function renderStarRating() {
     };
 }
 
+function rerenderStarRating() {
+    const {
+        content,
+        averageRating
+    } = renderStarRating();
+    document.querySelector('#stars__content').innerHTML = content;
+    document.querySelector('#average__rating').textContent = `${averageRating} / 5`;
+}
+
 function renderProductComments() {
     let html = '';
     globalProductReviews.forEach((review, reviewIndex) => {
         let extra = '';
 
         if (currentUser && currentUser.email === review.user) {
-            console.log('matching values');
             extra = `
                 <button class="btn btn-link text-sm p-0 m-0 d-inline-flex align-items-center justify-content-center edit-comment-btn" data-index="${reviewIndex}">
                     <ion-icon name="pencil" size="small"></ion-icon>
@@ -219,7 +245,6 @@ function handleCommentEvents() {
         // @ts-ignore
         const reviewIndex = event.target.dataset.index;
         currentReview = globalProductReviews.at(reviewIndex);
-        console.log('current review: ', currentReview);
 
         /* set form values */
         // @ts-ignore
@@ -255,6 +280,7 @@ function handleCommentEvents() {
                 // recompute average rating of the product
                 // rerender reviews
                 rerenderProductComments();
+                rerenderStarRating();
             } catch (err) {
                 console.log('Error deleting review: ', err);
             }
@@ -356,6 +382,7 @@ function handleReviewFormEvent() {
             enableButton(submitButton, buttonLabel);
             reviewModal.modal.hide();
             rerenderProductComments();
+            rerenderStarRating();
         } catch (err) {
             console.log('error: ', err);
         }

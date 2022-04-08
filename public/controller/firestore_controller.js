@@ -103,7 +103,7 @@ export async function addReview(reviewData) {
 
 export async function updateReview(reviewData) {
     try {
-        const q = query(collection(db, COLLECTION_NAMES.REVIEW), where("productId", "==", reviewData.docId));
+        const q = query(collection(db, COLLECTION_NAMES.REVIEW), where("uid", "==", reviewData.docId));
         const docRef = doc(db, COLLECTION_NAMES.REVIEW, reviewData.docId);
         await updateDoc(docRef, reviewData);
         return;
