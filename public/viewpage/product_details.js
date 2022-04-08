@@ -106,11 +106,11 @@ function buildProductDetailView(product, categories) {
                         <div id="card style="width: 150px">
                             <form action="#" id="product-cart__form" class="input-group">
                                 <button name="removeButton" class="btn btn-light border-light" type="submit"
-                                id="cart-plus">
+                                id="cart-minus">
                                     <ion-icon name="remove"></ion-icon>
                                 </button>
                                 <input type="text" class="form-control border-light" name="qty" placeholder="Qty" id="product__input" aria-describedby="button-addon1" value="${total}" min="0">
-                                <button class="btn btn-light border-light" type="submit" name="addButton" id="cart-minus">
+                                <button class="btn btn-light border-light" type="submit" name="addButton" id="cart-plus">
                                     <ion-icon name="add"></ion-icon>
                                 </button>
                             </form>
