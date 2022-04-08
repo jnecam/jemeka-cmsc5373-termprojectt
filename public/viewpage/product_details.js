@@ -60,7 +60,7 @@ export async function product_details_page({
     // handle product cart form event listener
 
     handleProductCartFormEvent(globalProduct);
-    handleProductCartButtonEvents();
+    // handleProductCartButtonEvents();
     handleReviewButtonEvent();
     handleCommentEvents();
 
@@ -76,7 +76,8 @@ function canReviewProduct() {
 function buildProductDetailView(product, categories) {
     const category = categories.find(cat => cat.docId === product.categoryId);
     const stars = renderStarRating();
-    let total = 0;
+    const itemInCart = cart.items.find(p => p.name === globalProduct.name.toLowerCase());
+    let total = itemInCart === undefined ? 0 : itemInCart.qty;
 
     return `
     <div class="row">
@@ -92,7 +93,7 @@ function buildProductDetailView(product, categories) {
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2>$${product.price}</h2>
                         <div class="text-warning">
-                            <div id="stars__content">
+                            <div id="stars__content"
                                 ${stars.content}
                             </div>
                             <span class="text-secondary" id="average__rating">${stars.averageRating || 0} / 5</span>
@@ -106,11 +107,11 @@ function buildProductDetailView(product, categories) {
                         <div id="card style="width: 150px">
                             <form action="#" id="product-cart__form" class="input-group">
                                 <button name="removeButton" class="btn btn-light border-light" type="submit"
-                                id="cart-minus">
+                                id="button-addon1" onClick="() => {total = updateCart(CART_SUBMITTER.DEC, product)}">
                                     <ion-icon name="remove"></ion-icon>
                                 </button>
-                                <input type="text" class="form-control border-light" name="qty" placeholder="Qty" id="product__input" aria-describedby="button-addon1" value="${total}" min="0">
-                                <button class="btn btn-light border-light" type="submit" name="addButton" id="cart-plus">
+                                <input type="text" class="form-control border-light" name="qty" placeholder="Qty" aria-describedby="button-addon1" value="${total}" min="0">
+                                <button class="btn btn-light border-light" type="submit" name="addButton" id="button-addon1" onClick="() => {total = updateCart(CART_SUBMITTER.INC, product)}">
                                     <ion-icon name="add"></ion-icon>
                                 </button>
                             </form>
@@ -147,23 +148,8 @@ function buildProductDetailView(product, categories) {
     `;
 }
 
-function handleProductCartButtonEvents() {
-    const plusButton = document.querySelector('#cart-plus');
-    const minusButton = document.querySelector('#cart-minus');
-    const productInput = document.querySelector('#product__input');
-
-    plusButton.addEventListener('click', event => {
-        const total = updateCart(CART_SUBMITTER.INC, globalProduct);
-        productInput.value = total;
-    });
-    minusButton.addEventListener('click', event => {
-        const total = updateCart(CART_SUBMITTER.DEC, globalProduct);
-        productInput.value = total;
-    });
-}
-
 function renderStarRating() {
-    const totalRating = globalProductReviews.reduce((total, review) => total + review.stars, 0);
+    const totalRating = globalProductReviews.reduce((total, review) => total + Number.parseInt(review.stars), 0);
     const averageRating = (globalProductReviews.length > 0) ? Math.round(totalRating / globalProductReviews.length) : 0;
     let stars = '';
     for (let count = 0; count < averageRating; count++) {
@@ -274,8 +260,10 @@ function handleCommentEvents() {
                 await deleteReview(currentReview.docId);
 
                 // remove review from global review state
-                globalProductReviews = globalProductReviews
+                const filteredReviews = globalProductReviews
                     .filter(review => review.docId !== currentReview.docId);
+
+                globalProductReviews = Array.from(new Set(filteredReviews));
 
                 // recompute average rating of the product
                 // rerender reviews
