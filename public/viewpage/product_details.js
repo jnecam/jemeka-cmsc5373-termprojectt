@@ -60,6 +60,7 @@ export async function product_details_page({
     // handle product cart form event listener
 
     handleProductCartFormEvent(globalProduct);
+    handleReviewFormEvent();
     // handleProductCartButtonEvents();
     handleReviewButtonEvent();
     handleCommentEvents();
@@ -215,7 +216,6 @@ function rerenderProductComments() {
     commentsContainer.innerHTML = '';
     commentsContainer.innerHTML = renderProductComments();
     handleCommentEvents();
-    // handleCoreEventListeners();
 }
 
 function handleCommentEvents() {
@@ -313,10 +313,10 @@ function handleProductCartFormEvent(product) {
 function handleReviewButtonEvent() {
     const reviewButton = document.querySelector('#btn-review');
     reviewButton.addEventListener('click', event => {
+        event.preventDefault();
+
         // @ts-ignore
         reviewModal.form.reset();
-
-        event.preventDefault();
         crudMode = CRUD_MODE.CREATE;
         reviewModal.title.textContent = "Create new product review";
         reviewModal.modal.show();
@@ -353,6 +353,8 @@ function handleReviewFormEvent() {
                 const allReviews = await getProductReviews(globalProduct.docId);
                 globalProductReviews = Array.from(new Set(allReviews));
             } else { // if crud mode is create
+                // check if review already exists
+
                 await addReview(reviewData.serialize());
                 globalProductReviews.unshift({
                     ...formData,
@@ -363,10 +365,6 @@ function handleReviewFormEvent() {
 
             // @ts-ignore
             reviewForm.reset();
-
-            // @ts-ignore
-            // reviewForm.dataset.crudMode = CRUD_MODE.CREATE;
-
             enableButton(submitButton, buttonLabel);
             reviewModal.modal.hide();
             rerenderProductComments();

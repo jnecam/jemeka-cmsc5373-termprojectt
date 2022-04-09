@@ -130,6 +130,30 @@ export async function deleteReview(docId) {
     }
 }
 
+/**
+ * Delete a review
+ * @param {string} docId document id
+ * @returns boolean
+ */
+export async function getReview(docId) {
+    try {
+        const docRef = query(collection(db, COLLECTION_NAMES.REVIEW), where("uid", "==", docId));
+        // const docRef = doc(db, COLLECTION_NAMES.REVIEW, docId);
+        await getDoc(docRef);
+        const review = {
+            stars: doc.data().stars,
+            review: doc.data().review,
+            user: doc.data().user,
+            productId: doc.data().productId,
+            docId: doc.id
+        };
+        return review;
+    } catch (err) {
+        console.log("error: ", err);
+        return;
+    }
+}
+
 export async function getProductReviews(productId) {
     const q = query(collection(db, COLLECTION_NAMES.REVIEW), where("productId", "==", productId));
     const querySnapshot = await getDocs(q);
